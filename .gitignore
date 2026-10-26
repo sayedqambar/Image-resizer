@@ -1,0 +1,12 @@
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local environment files
+.env
+
+
+DEPLOYMENT.md
+projectStepsprompt.txt.txt

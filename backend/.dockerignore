@@ -1,0 +1,5 @@
+target/
+.git/
+*.md
+e2e-test.ps1
+smoke-test.ps1

@@ -1,0 +1,3 @@
+# Netlify SPA fallback — all routes are served by index.html (react-router handles them).
+# The /api/* proxy is handled by netlify.toml below, NOT here.
+/*    /index.html    200

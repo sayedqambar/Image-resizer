@@ -1,0 +1,57 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: image-resizer-backend
+
+  # MySQL datasource — override via environment variables in any real environment.
+  datasource:
+    url: '${DB_URL:jdbc:mysql://localhost:3306/image_resizer?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}'
+    username: '${DB_USERNAME:root}'
+    password: '${DB_PASSWORD:}'
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Hard multipart cap (above the app-level 10 MB limit validated in code).
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+
+  # Serialize Instant as ISO-8601 strings in JSON responses.
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+app:
+  cors:
+    allowed-origins: '${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173}'
+  upload:
+    allowed-content-types:
+      - image/jpeg
+      - image/png
+      - image/webp
+    max-file-size: 10MB
+  jwt:
+    secret: '${APP_JWT_SECRET:change-me-in-production-min-32-chars!!}'
+    expiry-ms: '${APP_JWT_EXPIRY_MS:86400000}'
+  usage:
+    registered-daily-limit: 5
+    anonymous-daily-limit: 2
+
+# FastAPI AI microservice endpoint + timeouts for forwarded calls.
+ai:
+  service:
+    url: '${AI_SERVICE_URL:http://localhost:8000}'
+    connect-timeout: 5s
+    # Upscale downloads ~64 MB weights on first call and then runs inference.
+    # 600s gives enough headroom for a cold start on a slow connection.
+    read-timeout: 600s

@@ -1,0 +1,10 @@
+# Profile: nodb
+# Disables all database auto-configuration so the backend can start and serve
+# HTTP endpoints (health check, CORS, AI proxy) without a MySQL connection.
+# Use only for smoke-testing the API layer locally.
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration

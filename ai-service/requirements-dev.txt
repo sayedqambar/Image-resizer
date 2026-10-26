@@ -1,0 +1,10 @@
+# Lightweight dependencies sufficient to run the API + tests.
+# The heavy ML libraries (torch, realesrgan, basicsr, rembg, opencv) are mocked
+# in the test suite, so they are NOT required to run the tests.
+# Versions are left unpinned so they resolve wheels for the local interpreter.
+fastapi
+python-multipart
+numpy
+pillow
+pytest
+httpx

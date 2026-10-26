@@ -1,0 +1,20 @@
+# Web framework + ASGI server
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+
+# Image + math
+numpy==1.26.4
+pillow==10.4.0
+opencv-python-headless==4.10.0.84
+
+# Background removal (rembg + onnxruntime)
+rembg[cpu]==2.0.57
+
+# Upscaling (Real-ESRGAN).
+# NOTE: torch and torchvision are deliberately NOT listed here — pip would pull
+# the large default CUDA build. The Dockerfile installs CPU wheels first so the
+# realesrgan/basicsr "torch" dependencies are satisfied without the CUDA
+# download. For local (non-Docker) dev, install torch/torchvision yourself.
+realesrgan==0.3.0
+basicsr==1.4.2

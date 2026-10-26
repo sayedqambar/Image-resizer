@@ -1,0 +1,99 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Image Resizer — full-stack docker-compose
+#
+# Usage (development):
+#   cp .env.example .env          # fill in passwords
+#   docker-compose up --build
+#
+# The three application containers (frontend, backend, ai-service) plus MySQL
+# all start together.  Ports exposed to the host:
+#   5173 / 80  → frontend (nginx serves the React SPA + proxies /api)
+#   8080       → backend  (Spring Boot)
+#   8000       → ai-service (FastAPI) — internal only in prod
+#   3306       → MySQL     — internal only (not exposed by default)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── MySQL ───────────────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE:      image_resizer
+      MYSQL_USER:          ${DB_USERNAME:-resizer}
+      MYSQL_PASSWORD:      ${DB_PASSWORD:-resizerpassword}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+             "-u", "root", "--password=${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ── AI service ──────────────────────────────────────────────────────────────
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      # Persist downloaded model weights across container restarts
+      - ai_weights:/app/app/weights
+    environment:
+      AI_MAX_UPLOAD_MB: ${AI_MAX_UPLOAD_MB:-10}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── Spring Boot backend ──────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    environment:
+      DB_URL:      "jdbc:mysql://db:3306/image_resizer?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      DB_USERNAME: ${DB_USERNAME:-resizer}
+      DB_PASSWORD: ${DB_PASSWORD:-resizerpassword}
+      AI_SERVICE_URL:            http://ai-service:8000
+      APP_JWT_SECRET:            ${APP_JWT_SECRET:-change-me-min-32-chars-in-production!!}
+      APP_CORS_ALLOWED_ORIGINS:  ${APP_CORS_ALLOWED_ORIGINS:-http://localhost}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1",
+             "--spider", "http://localhost:8080/api/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # ── React frontend (nginx) ───────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+
+volumes:
+  db_data:
+  ai_weights:

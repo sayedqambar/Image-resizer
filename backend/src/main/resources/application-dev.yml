@@ -1,0 +1,22 @@
+# Profile: dev
+# Runs the full application (including auth and usage) using an H2 in-memory
+# database instead of MySQL. Perfect for local development without a MySQL install.
+# Data is wiped on every restart — exactly what you want for dev/testing.
+#
+# Start with:  mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:imageresizer;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ''
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop   # always start fresh; tables created from entities
+    show-sql: false
+  h2:
+    console:
+      enabled: true           # browse schema at http://localhost:8080/h2-console
+      path: /h2-console

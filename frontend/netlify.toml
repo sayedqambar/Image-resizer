@@ -1,0 +1,17 @@
+[build]
+  command   = "npm run build"
+  publish   = "dist"
+
+# Proxy /api/* to the backend (set VITE_API_URL as an env var in Netlify UI).
+# Replace https://your-backend.onrender.com with your actual backend URL.
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://your-backend.onrender.com/api/:splat"
+  status = 200
+  force  = true
+
+# SPA fallback — must come LAST (Netlify processes redirects top-to-bottom).
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
